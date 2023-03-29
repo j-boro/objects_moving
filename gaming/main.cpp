@@ -3,15 +3,17 @@
 #include <SFML/Graphics.hpp>
 
 int main() {
-    int rectangle_velocity_x = 50;
-    int rectangle_velocity_y = 150;
-    int rectangle_angular_velocity = 100;
+    int rectangle_velocity_x = 100;
+    int rectangle_velocity_y = 300;
+    int rectangle_angular_velocity = 10;
 
-    bool flag_y = false;
-    bool flag_x = false;
+    int dot_vel_x = 500;
+    int dot_vel_y = 600;
+
+    bool dot_flag_y = false, dot_flag_x = false;
 
     // create the window
-    sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
+    sf::RenderWindow window(sf::VideoMode(1000, 800), "My window");
 
     // create some shapes
     sf::CircleShape circle(100.0);
@@ -31,6 +33,10 @@ int main() {
     triangle.setOutlineThickness(5);
     triangle.setPosition(600.0, 100.0);
 
+    sf::CircleShape dot(10.0);
+    dot.setPosition(10.0, 10.0);
+    dot.setFillColor(sf::Color::Cyan);
+
     // run the program as long as the window is open
     while (window.isOpen()) {
         sf::Clock clock;
@@ -47,48 +53,62 @@ int main() {
         window.clear(sf::Color::Black);
 
         // draw everything here...
-        //window.draw(circle);
+        window.draw(circle);
         window.draw(rectangle);
-        //window.draw(triangle);
+        window.draw(triangle);
+        window.draw(dot);
 
         // end the current frame
         window.display();
+
         elapsed = clock.getElapsedTime();
         std::cout << 1/elapsed.asSeconds() << std::endl;
         float dt = elapsed.asSeconds();
+
         rectangle.move(rectangle_velocity_x*dt,rectangle_velocity_y*dt);
         rectangle.rotate(rectangle_angular_velocity*dt);
+
         sf::FloatRect rectangle_bounds = rectangle.getGlobalBounds();
-        std::cout << rectangle_bounds.top << " " << rectangle_bounds.left << " " ;
-        std::cout << rectangle_bounds.width << " " << rectangle_bounds.height << std::endl;
 
-        if(rectangle_bounds.top<=0 || rectangle_bounds.top+rectangle_bounds.height>=window.getSize().y)
-        {
-            if(flag_y != true)
-            {
-                rectangle_velocity_y *= -1;
-                rectangle.setFillColor(sf::Color(rand() % 256,
-                                                 rand() % 256,
-                                                 rand() % 256));
-            }
-            flag_y = true;
+        dot.move(dot_vel_x * dt, dot_vel_y * dt);
+
+        sf::FloatRect dot_bounds = dot.getGlobalBounds();
+
+        if(dot_bounds.top <= 0 || dot_bounds.top + dot_bounds.height>=window.getSize().y){
+            if(dot_flag_y != true)
+                dot_vel_y *= -1;
+            dot_flag_y = true;
         }
         else
-            flag_y = false;
+            dot_flag_y = false;
 
-        if(rectangle_bounds.left<=0 || rectangle_bounds.left+rectangle_bounds.width>=window.getSize().x)
-        {
-            if(flag_x!=true)
-            {
-                rectangle_velocity_x *= -1;
-                rectangle.setFillColor(sf::Color(rand() % 256,
-                                                 rand() % 256,
-                                                 rand() % 256));
-            }
-            flag_x = true;
+        if(dot_bounds.left<=0 || dot_bounds.left+dot_bounds.width>=window.getSize().x){
+            if(dot_flag_x!=true)
+                dot_vel_x *= -1;
+            dot_flag_x = true;
         }
         else
-            flag_x = false;
+            dot_flag_x = false;
+
+        if(rectangle_bounds.top <= 0){
+            rectangle_velocity_y = abs(rectangle_velocity_y);
+            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
+        }
+
+        if(rectangle_bounds.top + rectangle_bounds.height >= window.getSize().y){
+            rectangle_velocity_y = abs(rectangle_velocity_y) * -1;
+            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
+        }
+
+        if(rectangle_bounds.left <= 0 ){
+            rectangle_velocity_x = abs(rectangle_velocity_x);
+            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
+        }
+
+        if(rectangle_bounds.left + rectangle_bounds.width >= window.getSize().x){
+            rectangle_velocity_x = abs(rectangle_velocity_x) * -1;
+            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
+        }
     }
 
     return 0;
