@@ -3,9 +3,6 @@
 #include <SFML/Graphics.hpp>
 
 int main() {
-    int rectangle_velocity_x = 100;
-    int rectangle_velocity_y = 300;
-    int rectangle_angular_velocity = 10;
 
     int dot_vel_x = 500;
     int dot_vel_y = 600;
@@ -14,29 +11,23 @@ int main() {
 
     // create the window
     sf::RenderWindow window(sf::VideoMode(1000, 800), "My window");
+    window.setFramerateLimit(144);
+
+    const float grid_size = 50.f;
 
     // create some shapes
-    sf::CircleShape circle(100.0);
-    circle.setPosition(100.0, 300.0);
-    circle.setFillColor(sf::Color(100, 250, 50));
 
-    sf::RectangleShape rectangle(sf::Vector2f(120.0, 60.0));
+    sf::RectangleShape rectangle;
+    rectangle.setSize(sf::Vector2f(grid_size, grid_size));
     rectangle.setPosition(500.0, 400.0);
-    rectangle.setFillColor(sf::Color(100, 50, 250));
+    rectangle.setFillColor(sf::Color::Blue);
 
-    sf::ConvexShape triangle;
-    triangle.setPointCount(3);
-    triangle.setPoint(0, sf::Vector2f(0.0, 0.0));
-    triangle.setPoint(1, sf::Vector2f(0.0, 100.0));
-    triangle.setPoint(2, sf::Vector2f(140.0, 40.0));
-    triangle.setOutlineColor(sf::Color::Red);
-    triangle.setOutlineThickness(5);
-    triangle.setPosition(600.0, 100.0);
-
-    sf::CircleShape dot(10.0);
+    sf::CircleShape dot(10.f);
     dot.setPosition(10.0, 10.0);
-    dot.setFillColor(sf::Color::Cyan);
+    dot.setFillColor(sf::Color::Red);
 
+    const float movement_speed = 250.f;
+    sf::Vector2f velocity;
     // run the program as long as the window is open
     while (window.isOpen()) {
         sf::Clock clock;
@@ -53,27 +44,38 @@ int main() {
         window.clear(sf::Color::Black);
 
         // draw everything here...
-        window.draw(circle);
         window.draw(rectangle);
-        window.draw(triangle);
         window.draw(dot);
 
-        // end the current frame
         window.display();
 
-        elapsed = clock.getElapsedTime();
-        std::cout << 1/elapsed.asSeconds() << std::endl;
-        float dt = elapsed.asSeconds();
-
-        rectangle.move(rectangle_velocity_x*dt,rectangle_velocity_y*dt);
-        rectangle.rotate(rectangle_angular_velocity*dt);
-
-        sf::FloatRect rectangle_bounds = rectangle.getGlobalBounds();
-
-        dot.move(dot_vel_x * dt, dot_vel_y * dt);
+        //sf::FloatRect rectangle_bounds = rectangle.getGlobalBounds();
 
         sf::FloatRect dot_bounds = dot.getGlobalBounds();
 
+        elapsed = clock.getElapsedTime();
+        float dt = elapsed.asSeconds();
+
+        //movement control
+        velocity.x = 0;
+        velocity.y = 0;
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            velocity.y += -movement_speed * dt;
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            velocity.x += -movement_speed * dt;
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            velocity.y += movement_speed * dt;
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            velocity.x += movement_speed * dt;
+
+        rectangle.move(velocity);
+
+        dot.move(dot_vel_x * dt, dot_vel_y * dt);
+
+        std::cout << rectangle.getPosition().y << std::endl;
+
+        //collisions
         if(dot_bounds.top <= 0 || dot_bounds.top + dot_bounds.height>=window.getSize().y){
             if(dot_flag_y != true)
                 dot_vel_y *= -1;
@@ -90,25 +92,20 @@ int main() {
         else
             dot_flag_x = false;
 
-        if(rectangle_bounds.top <= 0){
-            rectangle_velocity_y = abs(rectangle_velocity_y);
-            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
-        }
+        if(rectangle.getPosition().x <= 0) //left
+            rectangle.setPosition(0, rectangle.getPosition().y);
+        if(rectangle.getPosition().x + rectangle.getSize().x >= 1000) //right
+            rectangle.setPosition(1000 - rectangle.getSize().x, rectangle.getPosition().y);
+        if(rectangle.getPosition().y <= 0) //top
+            rectangle.setPosition(rectangle.getPosition().x, 0);
+        if(rectangle.getPosition().y + rectangle.getSize().y >= 800) //bottom
+            rectangle.setPosition(rectangle.getPosition().x, 800 - rectangle.getSize().y);
 
-        if(rectangle_bounds.top + rectangle_bounds.height >= window.getSize().y){
-            rectangle_velocity_y = abs(rectangle_velocity_y) * -1;
-            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
-        }
 
-        if(rectangle_bounds.left <= 0 ){
-            rectangle_velocity_x = abs(rectangle_velocity_x);
-            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
-        }
+        // end the current frame
 
-        if(rectangle_bounds.left + rectangle_bounds.width >= window.getSize().x){
-            rectangle_velocity_x = abs(rectangle_velocity_x) * -1;
-            rectangle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
-        }
+
+
     }
 
     return 0;
