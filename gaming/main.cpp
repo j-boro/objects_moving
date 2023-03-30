@@ -102,10 +102,6 @@ int main() {
             rectangle.setPosition(rectangle.getPosition().x, 800 - rectangle.getSize().y);
 
 
-        // end the current frame
-
-
-
     }
 
     return 0;
